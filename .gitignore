@@ -1,0 +1,13 @@
+# Database files
+hospital-management-app/db/hospital.db
+
+# Virtual environment directory
+/venv/
+
+# Environment-specific files
+.env
+*.pyc
+
+# IDE-specific files (common examples for Python projects)
+.vscode/
+.idea/
