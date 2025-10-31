@@ -1,13 +1,20 @@
-# Database files
-hospital-management-app/db/hospital.db
+# Ignore the SQLite database file
+instance/hospital.db
 
-# Virtual environment directory
+# Ignore any other SQLite databases
+*.db
+
+# Ignoring venv
 /venv/
 
 # Environment-specific files
 .env
 *.pyc
+__pycache__/
 
-# IDE-specific files (common examples for Python projects)
+# IDE/project settings
 .vscode/
 .idea/
+
+# macOS system files
+.DS_Store
