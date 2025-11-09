@@ -1,4 +1,5 @@
-from app import db
+import bcrypt
+from extentions import db
 from datetime import datetime
 
 # 1 User -> 1 doctor 
@@ -15,6 +16,22 @@ class User(db.Model):
     doctor = db.relationship('Doctor', backref='user', uselist=False)
     patient = db.relationship('Patient', backref='user', uselist=False)
 
+    def __init__(self, full_name, email, password, contact=None, role='patient'):
+        self.full_name = full_name
+        self.email = email
+        # store hashed password
+        self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        self.contact = contact
+        self.role = role
+        self.is_active = True
+
+    @classmethod
+    def create_admin(cls, full_name, email, password, contact=None):
+        return cls(full_name=full_name, email=email, password=password, contact=contact, role='admin')
+
+    def check_password(self, password):
+        return bcrypt.checkpw(password.encode('utf-8'), self.password.encode('utf-8'))
+     
 # 1 department -> many doctors 
 class Department(db.Model):
     __tablename__ = 'departments'

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+
+{% block content %}
+    {% if session.get('role') != 'admin' %}
+        <div class="alert alert-danger" role="alert">
+            Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as an admin.
+        </div>
+
+    {% elif session.get('role') == 'admin' %}
+      <div class="py-4">
+        <h1>Hello, {{ session.get('full_name') }}!</h1>
+        <p><strong>Email:</strong> {{ session.get('email') }}</p>
+        <p><strong>Role:</strong> {{ session.get('role') }}</p>
+        HELLO FROM IITM ADMIN DASHBOARD
+
+        <form>
+            
+        </form>
+      </div>
+    {% endif %}
+{% endblock %}

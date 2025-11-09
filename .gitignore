@@ -3,18 +3,47 @@ instance/hospital.db
 
 # Ignore any other SQLite databases
 *.db
+*.sqlite3
 
 # Ignoring venv
 /venv/
-
-# Environment-specific files
 .env
 *.pyc
 __pycache__/
 
+# Environment-specific files
+*.bak
+*.log
+*.tmp
+*.temp
+*.pid
+*.lock
+
+# Flask cache / session folders
+flask_session/
+cache/
+*.cache
+
 # IDE/project settings
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # macOS system files
 .DS_Store
+Thumbs.db
+
+# Python packaging / build directories
+build/
+dist/
+*.egg-info/
+.eggs/
+__pypackages__/
+
+# Coverage / testing
+.coverage
+.pytest_cache/
+.tox/
+htmlcov/
+

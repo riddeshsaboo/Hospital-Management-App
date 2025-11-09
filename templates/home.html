@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Hospital App{% endblock %}
+
+{% block content %}
+<div>
+  <h1>Welcome to the IITM Hospital App</h1>
+  <p>Use the navigation bar to explore Departments, Doctors, Patients and Appointments.</p>
+</div>
+<div class="home-image-container">
+  <img src="{{ url_for('static', filename='hospital_home.png') }}" alt="Hospital Image" class="img-fluid rounded mx-auto d-block">
+</div>
+{% endblock %}
