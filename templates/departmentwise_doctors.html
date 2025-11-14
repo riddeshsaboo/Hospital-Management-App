@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Department Wise Doctors - IITM Hospital{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h2>Doctors in {{ department.name }} Department</h2>
+        
+        {% if total_doctors > 0 %}
+            <div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Specialization</th>
+                            <th>Contact</th>
+                            <th>Active</th>
+                            <th>About</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for doctor, user in doctors %}
+                        <tr>
+                            <td>{{ user.full_name }}</td>
+                            <td>{{ doctor.specialization }}</td>
+                            <td>{{ user.contact }}</td>
+                            <td>
+                                {% if user.is_active %}
+                                    Yes
+                                {% else %}
+                                    No
+                                {% endif %}
+                            </td>
+                            <td>{{ doctor.about }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>No doctors found in this department.</p>
+        {% endif %}
+    </div>
+{% endblock %}  

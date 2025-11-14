@@ -2,23 +2,86 @@
 {% extends "base.html" %}
 {% block title %}Admin Dashboard{% endblock %}
 
-
 {% block content %}
-    {% if session.get('role') != 'admin' %}
-        <div class="alert alert-danger" role="alert">
-            Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as an admin.
-        </div>
+<style>
+  .box { width: 90%; max-width: 800px; margin: 40px auto; background: #fff; padding: 20px; border: 1px solid #ccc; }
+  h1 { font-size: 22px; margin-bottom: 10px; }
+  p { font-size: 14px; margin: 4px 0; }
+  .alert { padding: 10px; background: #fdd; margin-bottom: 15px; }
+  .section { border-top: 1px solid #ddd; margin-top: 20px; padding-top: 15px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { border: 1px solid #ccc; padding: 6px; text-align: left; font-size: 13px; }
+  th { background: #eee; }
+  input, select, button { margin: 5px 0; padding: 6px; }
+  button { cursor: pointer; }
 
-    {% elif session.get('role') == 'admin' %}
-      <div class="py-4">
-        <h1>Hello, {{ session.get('full_name') }}!</h1>
-        <p><strong>Email:</strong> {{ session.get('email') }}</p>
-        <p><strong>Role:</strong> {{ session.get('role') }}</p>
-        HELLO FROM IITM ADMIN DASHBOARD
+  .form-popup {
+  display: none; 
+  position: fixed; 
+  z-index: 9; /*z index is used for making the form sit on top*/
+  left: 0;
+  top: 0; 
+  width: 100%; 
+  height: 100%; 
+  }
 
-        <form>
-            
-        </form>
-      </div>
-    {% endif %}
+.form-container {
+  background-color: #fefefe;
+  margin: 15% auto; 
+  padding: 20px;
+  border: 1px solid black;
+  width: 30%;
+}
+
+</style>
+<script>
+
+
+</script>
+
+{% if get_flashed_messages() %}
+  <div class="alert">
+    {% for message in get_flashed_messages() %}
+      <p>{{ message }}</p>
+    {% endfor %}
+  </div>
+{% endif %}
+<div class="box">
+  {% if session.get('role') != 'admin' %}
+    <div class="alert">
+      Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as an admin.
+    </div>
+  {% else %}
+    <h1>Hello, {{ session.get('full_name') }}!</h1>
+    <p><strong>Email:</strong> {{ session.get('email') }}</p>
+    <p><strong>Role:</strong> {{ session.get('role') }}</p>
+    <hr>
+    <p><strong>Welcome to IITM Hospital Admin Dashboard</strong></p>
+
+    <div class="section">
+      <h3>Dashboard : </h3>
+      <p>Total Doctors: <span id="total-doctors">{{ total_doctors }}</span></p>
+      <p>Total Patients: <span id="total-patients">{{ total_patients }}</span></p>
+      <p>Total Appointments: <span id="total-appointments">{{ total_appointments }}</span></p>
+    </div>
+
+    <div class="section">
+      <h3>Manage Doctors</h3>
+      
+      <a href="{{url_for('add_doctor')}}"><button>Add Doctor</button></a>
+      <a href="{{url_for('add_department')}}"><button>Add Department</button></a>
+      <a href="{{url_for('view_doctors')}}"><button>View Doctors</button></a>
+      <a href="{{url_for('view_departments')}}"><button>View Departments</button></a>
+
+    <div class="section">
+      <h3>Manage Patients</h3>
+      <a href="{{url_for('view_patients')}}"><button>View Patients</button></a>
+    </div>
+
+    <div class="section">
+      <h3>Manage Appointments</h3>
+      <a href="{{url_for('view_appointments')}}"><button>View Appointments</button></a>
+    </div>
+  {% endif %}
+</div>
 {% endblock %}

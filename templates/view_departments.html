@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}View Departments - IITM Hospital{% endblock %}
+
+{% block content %}
+    {% if total_departments > 0 %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Department ID</th>
+                <th>Department Name</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for department in departments %}
+            <tr>
+                <td>{{ department.department_id }}</td>
+                <td>{{ department.name }}</td>
+                <td>{{ department.description }}</td>
+                <td>
+                    <a href="{{ url_for('departmentwise_doctors', department_id=department.department_id) }}" class="btn btn-primary btn-sm">View Doctors</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% else %}
+    <p>No department found please add them using the Add department option on the Admin Dashboard</p>
+    {% endif %}
+
+{% endblock %}

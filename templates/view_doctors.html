@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}View Doctors - IITM Hospital{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-3">View All Doctors</h2>
+
+  {% if total_doctors > 0 %}
+    <form method="get" action="{{ url_for('search_doctor') }}" class="d-flex mb-4">
+      <input type="text" class="form-control me-2" name="query" placeholder="Search by name or specialization or dept" value="{{ request.args.get('query', '') }}">
+      <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Specialization</th>
+            <th>Contact</th>
+            <th>Active</th>
+            <th>About</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for doctor, user in doctors %}
+          <tr>
+            <td>{{ user.full_name }}</td>
+            <td>{{ doctor.department.name }}</td>
+            <td>{{ doctor.specialization }}</td>
+            <td>{{ user.contact }}</td>
+            <td>
+              {% if user.is_active %}
+                Yes
+              {% else %}
+                No
+              {% endif %}
+            </td>
+            <td>{{ doctor.about }}</td>
+            <td>
+              {% if user.is_active %}
+                <form action="{{ url_for('blacklist_user', user_id=user.user_id) }}" method="post" style="display:inline;" onsubmit="return confirm('Deactivate this user?');">
+                  <button type="submit" class="btn btn-sm btn-danger">Blacklist</button>
+                </form>
+              {% else %}
+                <form action="{{ url_for('unblacklist_user', user_id=user.user_id) }}" method="post" style="display:inline;" onsubmit="return confirm('Activate this user?');">
+                  <button type="submit" class="btn btn-sm btn-success">Unblacklist</button>
+                </form>
+              {% endif %}
+
+              <button class="btn btn-sm btn-outline-primary" onclick="openForm('{{ loop.index }}')">Edit</button>
+
+              <!-- editing -->
+              <div class="form-popup" id="form{{ loop.index }}">
+                <form action="{{ url_for('edit_user', user_id=user.user_id)}}" class="form-container" method="POST">
+                  <h3>Edit User</h3>
+
+                  <label for="name">Name</label>
+                  <input type="text" name="name" value="{{ user.full_name }}" id="name">
+                    <br>
+                  <label for="email">Email</label>
+                  <input type="email" name="email" value="{{ user.email }}" id="email">
+                    <br>
+                  <label for="contact">Contact</label>
+                  <input type="text" name="contact" value="{{ user.contact }}" id="contact">
+                    <br>
+                  {% if user.role == 'doctor' %}
+                    <label for="specialization">Specialization</label>
+                    <input type="text" name="specialization" value="{{ doctor.specialization }}" id="specialization">
+                    <br>
+                    <label for="about">About</label>
+                    <textarea name="about" rows="2" class="form-control" id="about">{{ doctor.about }}</textarea>
+                  {% endif %}
+                    <br>
+                  <div class="mt-3 text-end">
+                    <button type="submit" class="btn btn-success btn-sm">Submit</button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="closeForm('{{ loop.index }}')">Cancel</button>
+                  </div>
+                </form>
+      
+              </div>
+              <form action="{{ url_for('delete_user', user_id=user.user_id) }}" method="post" style="display:inline;" onsubmit="return confirm('Delete this user?');">
+                  <button type="submit" class="btn btn-sm btn-danger" style="margin-top: 3px;">Delete</button>
+              </form>
+            </td>
+          </tr>
+          
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    
+
+  {% else %}
+    <div class="alert alert-warning">No doctors found. Use “Add Doctor” to create new entries.</div>
+  {% endif %}
+</div>
+
+<style>
+  .form-popup {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+  }
+  .form-container {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 25px;
+    border-radius: 10px;
+    width: 400px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+</style>
+
+<script>
+  function openForm(id) {
+    document.getElementById("form" + id).style.display = "block";
+  }
+  function closeForm(id) {
+    document.getElementById("form" + id).style.display = "none";
+  }
+</script>
+
+{% endblock %}

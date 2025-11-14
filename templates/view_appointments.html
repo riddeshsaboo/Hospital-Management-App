@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}View Appointments - IITM Hospital{% endblock %}
+
+{% block content %}
+
+{% if total_appointments > 0 %}
+  <table class="table">
+    <thead>
+      <tr><th>Appointment ID</th><th>Doctor</th><th>Patient</th><th>Date & Time</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for doctor, user in doctors %}
+        {% for appointment in doctor.appointments %}
+          <tr>
+            <td>{{ appointment.appointment_id }}</td>
+            <td>{{ user.full_name }}</td>
+            <td>{{ appointment.patient.user.full_name }}</td>
+            <td>{{ appointment.appointment_date }} {{appointment.appointment_time}}</td>
+            <td>{{ appointment.status }}</td>
+          </tr>
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No appointments scheduled.</p>
+{% endif %}
+
+{% endblock %}
