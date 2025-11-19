@@ -3,6 +3,7 @@ import os
 # from flask_sqlalchemy import SQLAlchemy
 from extentions import db
 from models import Appointment, Availability, User,Doctor,Department,Patient
+from datetime import date , datetime
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'riddesh_s')  
@@ -32,19 +33,23 @@ def register():
         email = (request.form.get('email') or '').strip().lower()
         password = request.form.get('password') or ''
         contact = (request.form.get('contact') or '').strip()
+        dob_str = request.form.get('dob') 
+        dob = datetime.strptime(dob_str, '%Y-%m-%d').date() 
+        blood_group = request.form.get('blood_group')
+        address = request.form.get('address')
 
-        if not name or not email or not password or not contact:
+        if not name or not email or not password or not contact and not dob or not blood_group :
             flash('Please enter all the required fields', 'warning')
-            return render_template('register.html')
+            return render_template('register.html',current_date=date.today())
 
         # if the email already exist in the db 
         if User.query.filter_by(email=email).first():
             flash('Email already registered', 'warning')
-            return render_template('register.html')
+            return render_template('register.html',current_date=date.today())
 
         # create patient user only
         new_user = User(full_name=name, email=email, password=password, contact=contact) #user model ka constructor
-        new_patient = Patient(user=new_user)  # create a Patient linked to the new User
+        new_patient = Patient(user=new_user, dob=dob, blood_group=blood_group, address=address)  
         db.session.add(new_user)
         db.session.add(new_patient)
         db.session.commit()
@@ -52,7 +57,7 @@ def register():
         flash('Account created. Please login.', 'success')
         return redirect(url_for('login'))
 
-    return render_template('register.html')
+    return render_template('register.html', current_date=date.today())
 
 @app.route('/login',methods=['GET','POST'])
 def login():

@@ -33,12 +33,18 @@
 <div class="box">
   <h3>Create a Patient Account</h3>
 
-  {% if error %}
+  <!-- {% if error %}
     <div class="alert alert-danger">{{ error }}</div>
   {% endif %}
 
   {% if success %}
     <div class="alert alert-success">{{ success }}</div>
+  {% endif %} -->
+
+  {% if get_flashed_messages() %}
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
   {% endif %}
 
   <form action="{{ url_for('register') }}" method="post">
@@ -49,10 +55,31 @@
     <input id="email" name="email" type="email" required>
 
     <label for="contact">Contact</label>
-    <input id="contact" name="contact" type="text" placeholder="Phone number" required>
+    <input id="contact" name="contact" type="tel" placeholder="Phone number" required>
+
+    <label for="dob">Date of Birth</label>
+    <input id="dob" name="dob" type="date" required max="{{ current_date }}">
+
+    <label for="blood_group">Blood Group</label>
+    <select id="blood_group" name="blood_group" required>
+      <option value="" disabled selected>Blood Group</option>
+      <option value="A+">A+</option>
+      <option value="A-">A-</option>
+      <option value="B+">B+</option>
+      <option value="B-">B-</option>
+      <option value="AB+">AB+</option>
+      <option value="AB-">AB-</option>
+      <option value="O+">O+</option>
+      <option value="O-">O-</option>
+    </select>
+
+    <label for="address">Address</label>
+    <input id="address" name="address" type="text">
 
     <label for="password">Password</label>
     <input id="password" name="password" type="password" required>
+
+
 
     <button type="submit">Register</button>
   </form>
