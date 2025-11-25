@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Department Details - IITM Hospital{% endblock %}
+
+{% block content %}
+    {% if session.get('role') != 'patient' %}
+        <div class="alert alert-danger" role="alert">
+            Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as a patient.
+        </div>
+
+    {% elif session.get('role') == 'patient' %}
+      <div class="py-4">
+        <h1>Department: {{ department.name }}</h1>
+        <p><strong>Department ID:</strong> {{ department.department_id }}</p>
+        <p><strong>Description:</strong> {{ department.description }}</p>
+      </div>
+
+      <div class="py-4">
+        <h2>Doctors in this Department</h2>
+        {% if doctors %}
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Doctor ID</th>
+                <th scope="col">Full Name</th>
+                <th scope="col">Contact</th>
+                <th scope="col">Availability
+              </tr>
+            </thead>
+            <tbody>
+              {% for doctor,user in doctors %}
+              <tr>
+                <td>{{ doctor.doctor_id }}</td>
+                <td>{{ user.full_name }}</td>
+                <td>{{ user.contact }}</td>
+                <td><a href="{{ url_for('doctor_availability', doctor_id=doctor.doctor_id) }}">View Availability</a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>No doctors are currently available in this department.</p>
+        {% endif %}
+    {% endif %}
+{% endblock %}

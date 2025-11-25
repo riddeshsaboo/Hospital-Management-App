@@ -4,6 +4,16 @@
 
 
 {% block content %}
+
+    {% if get_flashed_messages() %}
+      <div class="alert">
+        {% for message in get_flashed_messages() %}
+          <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+
     {% if session.get('role') != 'patient' %}
         <div class="alert alert-danger" role="alert">
             Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as a patient.
@@ -16,5 +26,132 @@
         <p><strong>Role:</strong> {{ session.get('role') }}</p>
         HELLO FROM IITM PATIENT DASHBOARD
       </div>
+      
+      {% if total_departments != 0 %}
+        <div class="py-4">
+        <h2>Available Departments</h2>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">Department ID</th>
+              <th scope="col">Department Name</th>
+              <th scope="col">View Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for department in departments %}
+            <tr>
+              <td>{{ department.department_id }}</td>
+              <td>{{ department.name }}</td>
+              <td><a href="{{ url_for('department_details', department_id=department.department_id) }}" class="btn btn-primary btn-sm">View</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        {% else %}
+          <p>No departments found please contact admin</p>
+      
     {% endif %}
+
+    </table>
+    </div>
+    
+    <div class="py-4">
+        <h2>Upcoming Appointments</h2>
+        {% if total_scheduled_appointments != 0 %}
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Appointment ID</th>
+                <th scope="col">Doctor Name</th>
+                <th scope="col">Date & Time</th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for appointment, doctor, patient, user in scheduled_appointments %}
+              <tr>
+                <td>{{ appointment.appointment_id }}</td>
+                <td>{{ doctor.user.full_name }}</td>
+                <td>{{ appointment.appointment_date }} {{appointment.appointment_time}}</td>
+                <td>{{ appointment.status }}</td>
+                <td>
+                  <form action="{{ url_for('cancel_appointment') }}" method="post" style="display:inline;">
+                    <input type="hidden" name="appointment_id" value="{{ appointment.appointment_id }}">
+                    <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>You have no appointments scheduled.</p>
+        {% endif %}
+      </div>
+
+      <div class="py-4">
+        <h2>Completed Appointments</h2>
+        {% if total_completed_appointments != 0 %}
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Appointment ID</th>
+                <th scope="col">Doctor Name</th>
+                <th scope="col">Date & Time</th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for appointment, doctor, patient, user in completed_appointments %}
+              <tr>
+                <td>{{ appointment.appointment_id }}</td>
+                <td>{{ doctor.user.full_name }}</td>
+                <td>{{ appointment.appointment_date }} {{appointment.appointment_time}}</td>
+                <td>{{ appointment.status }}</td>
+                <td>
+                  <form action="{{ url_for('view_appointment_details') }}" method="post" style="display:inline;">
+                    <input type="hidden" name="appointment_id" value="{{ appointment.appointment_id }}">
+                    <button type="submit">View Details</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>You have no completed appointments.</p>
+        {% endif %}
+      </div>
+
+      <div class="py-4">
+        <h2>Cancelled Appointments</h2>
+        {% if total_cancelled_appointments != 0 %}
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Appointment ID</th>
+                <th scope="col">Doctor Name</th>
+                <th scope="col">Date & Time</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for appointment, doctor, patient, user in cancelled_appointments %}
+              <tr>
+                <td>{{ appointment.appointment_id }}</td>
+                <td>{{ doctor.user.full_name }}</td>
+                <td>{{ appointment.appointment_date }} {{appointment.appointment_time}}</td>
+                <td>{{ appointment.status }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>You have no cancelled appointments.</p>
+        {% endif %}
+      </div>
+
+      {% endif %}
 {% endblock %}

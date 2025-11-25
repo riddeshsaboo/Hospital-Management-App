@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% if session.get('role') != 'patient' %}
+        <div class="alert alert-danger" role="alert">
+            Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as a patient.
+        </div>
+    {% elif session.get('role') == 'patient' %}
+      <div class="py-4">
+        <h1>Doctor Availability</h1>
+        <h2>Dr. {{ doctor.user.full_name }}</h2>
+        <p><strong>Specialization:</strong> {{ doctor.specialization }}</p>
+        <p><strong>Department:</strong> {{ doctor.department.name }}</p>
+      </div>
+        <div class="py-4">
+            <h2>Available Appointment Slots</h2>
+            {% if availabilities %}
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Book</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for slot in availabilities %}
+                  {% if not (slot.date < current_date or (slot.date == current_date and slot.end_time <= current_time)) %}
+                <tr>
+                    <td>{{ slot.date.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                      {% if slot.start_time and slot.end_time %}
+                        {{ slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }}
+                      {% else %}
+                        —
+                      {% endif %}
+                    </td>
+                    <td>
+                    <form action="{{ url_for('book_appointment') }}" method="post">
+                        <input type="hidden" name="availability_id" value="{{ slot.availability_id }}">
+                        <button type="submit" class="btn btn-primary btn-sm">Book</button>
+                    </form>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No available appointment slots at the moment.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}

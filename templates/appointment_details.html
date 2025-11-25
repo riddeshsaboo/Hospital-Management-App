@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Appointment Details - IITM Hospital{% endblock %}
+
+{% block content %}
+    {% if session.get('role') != 'patient' %}
+        <div class="alert alert-danger" role="alert">
+            Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as a patient.
+        </div>
+
+    {% elif session.get('role') == 'patient' %}
+      <div class="py-4">
+        <h1>Appointment Details</h1>
+        <p><strong>Appointment ID:</strong> {{ appointment.appointment_id }}</p>
+        <p><strong>Date and Time:</strong> {{ treatment.datetime }}</p>
+        <p><strong>Status:</strong> {{ appointment.status }}</p>
+
+        <h2>Doctor Information</h2>
+        <p><strong>Name:</strong> Dr. {{ doctor.user.full_name }}</p>
+        <p><strong>Specialization:</strong> {{ doctor.specialization }}</p>
+
+        <h2>Patient Information</h2>
+        <p><strong>Name:</strong> {{ patient.user.full_name }}</p>
+
+        {% if treatment %}
+            <h2>Treatment Details</h2>
+            <p><strong>Treatment ID:</strong> {{ treatment.treatment_id }}</p>
+            <p><strong>Description:</strong> {{ treatment.diagnosis }}</p>
+            <p><strong>Prescribed Medication:</strong> {{ treatment.prescription }}</p>
+        {% else %}
+            <p>No treatment details available for this appointment.</p>
+        {% endif %}
+      </div>
+    {% endif %}
+{% endblock %}
+
+<!-- class Treatment(db.Model):
+    __tablename__ = 'treatments'
+    treatment_id = db.Column(db.Integer, primary_key=True)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.appointment_id'), nullable=False)
+    diagnosis = db.Column(db.Text)
+    prescription = db.Column(db.Text)
+    datetime = db.Column(db.DateTime, nullable=False, default=datetime.now) -->
