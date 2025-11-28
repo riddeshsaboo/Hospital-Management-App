@@ -1,20 +1,195 @@
-<!DOCTYPE html>
 {% extends "base.html" %}
 {% block title %}Doctor Dashboard{% endblock %}
 
-
 {% block content %}
-    {% if session.get('role') != 'doctor' %}
-        <div class="alert alert-danger" role="alert">
-            Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as a doctor.
-        </div>
 
-    {% elif session.get('role') == 'doctor' %}
-      <div class="py-4">
+{% if session.get('role') != 'doctor' %}
+    <div class="alert alert-danger">
+        Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as doctor.
+    </div>
+
+{% else %}
+
+{% if get_flashed_messages() %}
+    {% for message in get_flashed_messages() %}
+        <div class="alert alert-info">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<div class="py-4">
         <h1>Hello, {{ session.get('full_name') }}!</h1>
         <p><strong>Email:</strong> {{ session.get('email') }}</p>
         <p><strong>Role:</strong> {{ session.get('role') }}</p>
         HELLO FROM IITM DOCTOR DASHBOARD
-      </div>
+</div>
+
+<div class="py-4">
+    <h3>Upcoming Appointments ({{ total_upcoming_appointments }})</h3>
+
+    {% if upcoming_appointments %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Sr No</th>
+                <th>Patient</th>
+                <th>Date & Time</th>
+                <th>Patient History</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for appt, doctor, patient, user , treatment in upcoming_appointments %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ user.full_name }}</td>
+                <td>{{ appt.appointment_date }} {{ appt.appointment_time }}</td>
+
+                <td>
+                    <button 
+                        class="btn btn-dark"
+                        onclick="openForm('{{ loop.index }}', '{{ user.full_name }}')">
+                        Update
+                    </button>
+
+                    <div class="form-popup" id="form{{ loop.index }}">
+                        <div class="form-container">
+
+                            <span class="close" onclick="closeForm('{{ loop.index }}')">x</span>
+                            <h4>Update Patient History</h4>
+
+                            <p id="patient_name_display{{ loop.index }}" style="font-weight:600; margin-bottom:10px;">{{ appt.appointment_id }}</p>
+                            <input type="hidden" id="patient_name{{ loop.index }}" name="patient_name">
+
+                            <form method="POST" action="{{ url_for('update_patient_history') }}">
+                                <input type="hidden" id="appointment_id{{ loop.index }}" name="appointment_id" value="{{ appt.appointment_id }}">
+
+                                <label for="diagnosis{{ loop.index }}">Diagnosis</label>
+                                <br>
+                                <input name="diagnosis" type="text" id="diagnosis{{ loop.index }}" value="{{ treatment.diagnosis if treatment else '' }}" required>
+                                <br>
+
+                                <label for="prescription{{ loop.index }}">Prescription</label>
+                                <br>
+                                <textarea name="prescription" id="prescription{{ loop.index }}" class="form-control large-textarea" rows="6" required>{{ treatment.prescription if treatment else '' }}</textarea>
+                                <br>
+                                <div class="mt-2">
+                                  <button type="submit" class="btn btn-success w-100">Update</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </td>
+
+                <td>
+                 
+                  <form action="{{ url_for('mark_appointment_completed') }}" method="post" style="display:inline;">
+                    <input type="hidden" name="appointment_id" value="{{ appt.appointment_id }}">
+                    <button type="submit" class="btn btn-success" onclick="return confirm('Mark as complete?')">Mark as Completed</button>
+                  </form>
+
+                  <form action="{{ url_for('cancel_appointment_as_doctor') }}" method="post" style="display:inline;margin-left:6px;">
+                    <input type="hidden" name="appointment_id" value="{{ appt.appointment_id }}">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel appointment?')">Cancel</button>
+                  </form>
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No upcoming appointments.</p>
     {% endif %}
+</div>
+
+<div>
+  <h2>Assigned Patients</h2>
+  {% if total_upcoming_appointments != 0 %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Sr No</th>
+          <th>Patient Name</th>
+          <th>View History</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appt, doctor, patient, user, treatment in upcoming_appointments %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ user.full_name }}</td>
+          <td>
+            <form action="{{ url_for('view_patient_history')}}" method="POST">
+              <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
+              <button type="submit" class="btn btn-dark">View History</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No assigned patients.</p>
+  {% endif %}
+</div>
+
+<div>
+  <a href="{{url_for('provide_availability')}}"><button class="btn btn-primary">Provide Availability</button></a>
+</div>
+
+
+<script>
+function openForm(id, patient_name) {
+    var element = document.getElementById("form" + id);
+    if (element) {
+        element.style.display = "block";
+    }
+
+    var hid = document.getElementById("patient_name" + id);
+    if (hid) {
+        hid.value = patient_name;
+    }
+
+    var display = document.getElementById("patient_name_display" + id);
+    if (display) {
+        display.innerText = "Patient: " + patient_name;
+    }
+}
+
+function closeForm(id) {
+    var element = document.getElementById("form" + id);
+    if (element) {
+        element.style.display = "none";
+    }
+}
+</script>
+
+<style>
+.form-popup {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+}
+.form-container {
+    background-color: #fff;
+    margin: 8% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 600px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.large-textarea {
+    resize: vertical;
+    height: 150px;
+}
+</style>
+
+{% endif %}
 {% endblock %}

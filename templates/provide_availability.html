@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Provide Availability{% endblock %}
+
+{% block content %}
+
+{% if session.get('role') != 'doctor' %}
+    <div class="alert alert-danger">
+        Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as doctor.
+    </div>
+
+{% else %}
+<style>
+        .locked {
+            background-color: lightgray;
+        }
+
+        .save-btn {
+            margin-top: 20px;
+            padding: 8px 20px;
+        }
+    </style>
+
+<h2>Doctor Availability (Next 7 Days)</h2>
+
+<form method="POST" action="{{ url_for('save_availability') }}">
+
+<table class="table table-striped">
+    <thead>
+        <th>Date</th>
+        <th>08:00 - 10:00</th>
+        <th>10:00 - 12:00</th>
+        <th>12:00 - 14:00</th>
+        <th>14:00 - 16:00</th>
+        <th>16:00 - 18:00</th>
+        <th>18:00 - 20:00</th>
+        <th>20:00 - 22:00</th>
+    </thead>
+
+    {% for day in next_7_days %}
+    <tr>
+        <td>{{ day }}</td>
+
+        {% for start, end in slots %}
+            {% if (day, start, end) in saved %}
+                <td class="locked">
+                    <input type="checkbox" checked disabled>Saved
+                </td>
+            {% else %}
+                <td>
+                    <input type="checkbox" name="slots" value="{{ day }}|{{ start }}|{{ end }}">
+                </td>
+            {% endif %}
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+
+<button type="submit" class="btn btn-success" onclick="confirm('Submit?Once submited availabilities cannot be updated.')">Save Availability</button>
+
+</form>
+
+{% endif %}
+
+{% endblock %}

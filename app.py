@@ -3,7 +3,7 @@ import os
 # from flask_sqlalchemy import SQLAlchemy
 from extentions import db
 from models import Appointment, Availability, Treatment, User,Doctor,Department,Patient
-from datetime import date , datetime, timedelta
+from datetime import date , datetime, timedelta , time
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'riddesh_s')  
@@ -147,8 +147,20 @@ def doctor_dashboard():
                 return redirect('/patient_dashboard')
             else : 
                 return redirect('/logout')
+            
+        upcoming_appointments = (
+            db.session.query(Appointment, Doctor, Patient, User, Treatment)
+            .join(Doctor, Appointment.doctor_id == Doctor.doctor_id)
+            .join(Patient, Appointment.patient_id == Patient.patient_id)
+            .join(User, Patient.user_id == User.user_id)
+            .join(Treatment, Appointment.appointment_id == Treatment.appointment_id, isouter=True)
+            .filter(Doctor.user_id == session.get('user_id'), Appointment.status == 'scheduled')
+            .all()
+        )
+
         user = User.query.filter_by(email=session.get('email')).first()
-        return render_template('doctor_dashboard.html', user=user)
+        return render_template('doctor_dashboard.html', user=user,upcoming_appointments=upcoming_appointments,total_upcoming_appointments=len(upcoming_appointments)) 
+    
     return redirect('/login')
 
 
@@ -540,7 +552,6 @@ def doctor_availability():
     return render_template('doctor_availability.html', doctor=doctor, availabilities=availabilities, total_slots=total_slots,current_date=current_date,current_time=current_time)
 
 
-# yaaha se continue ....
 @app.route('/patient_dashboard/book_appointment', methods=['POST'])
 def book_appointment():
     # print(-1)
@@ -636,44 +647,165 @@ def view_appointment_details():
     return render_template('appointment_details.html', appointment=appointment, doctor=doctor, patient=patient, treatment=treatment)
 
 
+@app.route('/doctor_dashboard/update_patient_history', methods=['POST'])
+def update_patient_history():
+    if session.get('role') != 'doctor':
+        flash("You must be logged in as a doctor to update patient history.", "danger")
+        return redirect(url_for('login'))
+    
+    appointment_id = request.form.get('appointment_id')
+    diagnosis = request.form.get('diagnosis')
+    prescription = request.form.get('prescription')
 
-# Just for testing purpose
-def insert_dummy_slot(doctor_id: int | None = None):
-    with app.app_context():
-        # pick a doctor
-        doctor = None
-        if doctor_id:
-            doctor = Doctor.query.get(doctor_id)
-        if not doctor:
-            doctor = Doctor.query.first()
-        if not doctor:
-            print("No doctor found. Create a doctor first (via admin).")
-            return
+    appointment = Appointment.query.get(appointment_id)
+    if not appointment:
+        flash("Appointment not found.", "danger")
+        return redirect(url_for('doctor_dashboard'))
 
-        slot_date = date.today() + timedelta(days=1)          # tomorrow
-        # start = time(10, 0)                                   # 10:00 AM
-        # end = time(10, 30)                                    # 10:30 AM
-        # create time objects using datetime.strptime().time()
-        start = datetime.strptime("10:00", "%H:%M").time()    # 10:00 AM
-        end = datetime.strptime("10:30", "%H:%M").time()      # 10:30 AM
+    try:
+        treatment = Treatment.query.filter_by(appointment_id=appointment.appointment_id).first()
+        if not treatment:
+            treatment = Treatment(appointment_id=appointment.appointment_id)
+            db.session.add(treatment)
 
-        # ensure no duplicate
-        existing = Availability.query.filter_by(
-            doctor_id=doctor.doctor_id, date=slot_date, start_time=start, end_time=end
-        ).first()
-        if existing:
-            print("Slot already exists:", existing.availability_id)
-            return
+        treatment.diagnosis = diagnosis
+        treatment.prescription = prescription
 
-        a = Availability(
-            doctor_id=doctor.doctor_id,
-            date=slot_date,
-            start_time=start,
-            end_time=end
-        )
-        db.session.add(a)
         db.session.commit()
-        print("Inserted dummy slot for doctor_id", doctor.doctor_id, "on", slot_date)
+        flash("Patient history updated successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Could not update patient history: " + str(e), "danger")
+
+    return redirect(url_for('doctor_dashboard'))
+
+
+@app.route('/doctor_dashboard/mark_appointment_completed', methods=['POST'])
+def mark_appointment_completed(): 
+    if session.get('role') != 'doctor':
+        flash("You must be logged in as a doctor to mark an appointment as completed.", "danger")
+        return redirect(url_for('login'))
+    
+    appointment_id = request.form.get('appointment_id')
+    appointment = Appointment.query.get(appointment_id)
+    if not appointment:
+        flash("Appointment not found.", "danger")
+        return redirect(url_for('doctor_dashboard'))
+
+    try:
+        appointment.status = 'completed'
+        db.session.commit()
+        flash("Appointment marked as completed.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Could not mark appointment as completed: " + str(e), "danger")
+
+    return redirect(url_for('doctor_dashboard'))
+
+@app.route('/doctor_dashboard/view_patient_history', methods=['POST'])
+def view_patient_history():
+    if session.get('role') != 'doctor':
+        flash("You must be logged in as a doctor to view patient history.", "danger")
+        return redirect(url_for('login'))
+    
+    patient_id = request.form.get('patient_id')
+    patient = Patient.query.get(patient_id)
+    if not patient:
+        flash("Patient not found.", "danger")
+        return redirect(url_for('doctor_dashboard'))
+
+    user = User.query.get(patient.user_id)
+    doctor = Doctor.query.filter_by(user_id=session.get('user_id')).first()
+    treatments = (db.session.query(Appointment, Treatment).join(Treatment, Appointment.appointment_id == Treatment.appointment_id).filter(Appointment.patient_id == patient.patient_id , Appointment.doctor_id == doctor.doctor_id).all())
+
+    return render_template('patient_history.html', patient=patient, user=user, treatments=treatments , doctor=doctor)
+
+@app.route("/doctor_dashboard/provide_availability", methods=["GET", "POST"])
+def provide_availability():
+
+    if session.get("role") != "doctor":
+        flash("You must be logged in as a doctor to provide availability.", "danger")
+        return redirect(url_for("login"))
+
+
+    doctor = Doctor.query.filter_by(user_id=session.get("user_id")).first()
+    if not doctor:
+        flash("Doctor record not found for current user.", "danger")
+        return redirect(url_for("doctor_dashboard"))
+    
+    today = date.today()
+    next_7_days = []
+    for i in range(7):
+        next_7_days.append(today + timedelta(days=i))
+
+    slots = [
+        (time(8, 0), time(10, 0)),  
+        (time(10, 0), time(12, 0)),
+        (time(12, 0), time(14, 0)), 
+        (time(14, 0), time(16, 0)),
+        (time(16, 0), time(18, 0)),
+        (time(18, 0), time(20, 0)),
+        (time(20, 0), time(22, 0))
+    ]
+
+    saved_slots = Availability.query.filter( Availability.doctor_id == doctor.doctor_id, Availability.date >= today, Availability.date <= today + timedelta(days=6)).all()
+
+    saved = set()
+    for s in saved_slots:
+        saved.add((s.date, s.start_time, s.end_time))
+
+    return render_template("provide_availability.html", next_7_days=next_7_days, slots=slots, saved=saved)
+
+
+@app.route("/doctor_dashboard/save_availability", methods=["POST"])
+def save_availability():
+
+    if session.get("role") != "doctor":
+        flash("You must be logged in as a doctor to save availability.", "danger")
+        return redirect(url_for("login"))
+    doctor = Doctor.query.filter_by(user_id=session.get("user_id")).first()
+    if not doctor:
+        flash("Doctor record not found for current user.", "danger")
+        return redirect(url_for("doctor_dashboard"))
+    
+    selected_slots = request.form.getlist("slots")
+
+    for slot in selected_slots:
+        date, start, end = slot.split("|")
+
+        new_slot = Availability(
+            doctor_id=doctor.doctor_id,
+            date=datetime.fromisoformat(date),
+            start_time=time.fromisoformat(start),
+            end_time=time.fromisoformat(end)
+        )
+        db.session.add(new_slot)
+
+    db.session.commit()
+
+    flash("Availability saved successfully!", "success")
+    return redirect(url_for("doctor_dashboard"))
+
+@app.route('/doctor_dashboard/cancel_appointment/', methods=['POST'])
+def cancel_appointment_as_doctor(): 
+    if session.get('role') != 'doctor':
+        flash("You must be logged in as a doctor to cancel an appointment.", "danger")
+        return redirect(url_for('login'))
+   
+    appointment_id = request.form.get('appointment_id')
+    appointment = Appointment.query.get(appointment_id)
+    if not appointment:
+        flash("Appointment not found.", "danger")
+        return redirect(url_for('patient_dashboard'))   
+    try:
+        appointment.status = 'canceled'
+        db.session.commit()
+        flash("Appointment canceled successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Could not cancel appointment: " + str(e), "danger")
+
+    return redirect(url_for('patient_dashboard'))
 
 
 if __name__ == '__main__':
@@ -685,7 +817,5 @@ if __name__ == '__main__':
 
             db.session.add(admin_db)
             db.session.commit()
-
-    insert_dummy_slot(doctor_id=None)
 
     app.run(debug=True, host="0.0.0.0", port=5000)
