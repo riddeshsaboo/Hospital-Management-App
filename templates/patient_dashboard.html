@@ -24,7 +24,9 @@
         <h1>Hello, {{ session.get('full_name') }}!</h1>
         <p><strong>Email:</strong> {{ session.get('email') }}</p>
         <p><strong>Role:</strong> {{ session.get('role') }}</p>
-        HELLO FROM IITM PATIENT DASHBOARD
+        WELCOME TO IITM PATIENT DASHBOARD
+        <br>
+        <a href="{{ url_for('view_history_patient') }}"><button class="btn btn-dark" style="margin-top: 10px;">View History</button></a>
       </div>
       
       {% if total_departments != 0 %}
@@ -111,7 +113,7 @@
                 <td>{{ appointment.appointment_date }} {{appointment.appointment_time}}</td>
                 <td>{{ appointment.status }}</td>
                 <td>
-                  <form action="{{ url_for('view_appointment_details') }}" method="post" style="display:inline;">
+                  <form action="{{ url_for('view_appointment_details') }}" method="POST" style="display:inline;">
                     <input type="hidden" name="appointment_id" value="{{ appointment.appointment_id }}">
                     <button type="submit">View Details</button>
                   </form>

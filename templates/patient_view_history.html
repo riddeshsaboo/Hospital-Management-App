@@ -4,30 +4,33 @@
 
 {% block content %}
 
-{% if session.get('role') != 'doctor' %}
+{% if session.get('role') != 'patient' %}
     <div class="alert alert-danger">
-        Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as doctor.
+        Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as patient.
     </div>
 
 {% else %}
     <div class="py-3">
         <h2>Patient History for {{ user.full_name }}</h2>
-        <h3>Doctor: {{ doctor.user.full_name }}</h3>
         <div class="py-3">
         {% if treatments %}
             <table class="table table-striped">
                 <thead>
                     <tr>
                         <th>Sr no.</th>
+                        <th>Doctor</th>
+                        <th>Doc Department</th>
                         <th>Appointment Date</th>
                         <th>Diagnosis</th>
                         <th>Prescription</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for appointment,treatment in treatments %}
+                    {% for appointment,treatment,doctor in treatments %}
                     <tr>
                         <td>{{ loop.index }}</td>
+                        <td>{{ doctor.user.full_name }}</td>
+                        <td>{{ doctor.department.name }}</td>
                         <td>{{ appointment.appointment_date }}</td>
                         <td>{{ treatment.diagnosis }}</td>
                         <td><pre>{{ treatment.prescription }}</pre></td>

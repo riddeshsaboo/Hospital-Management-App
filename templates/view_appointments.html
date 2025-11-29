@@ -5,22 +5,33 @@
 {% block content %}
 
 {% if total_appointments > 0 %}
+  <h2>View Upcoming Appointments</h2>
   <table class="table">
     <thead>
-      <tr><th>Appointment ID</th><th>Doctor</th><th>Patient</th><th>Date & Time</th><th>Status</th></tr>
+      <tr>
+        <th>Appointment ID</th>
+        <th>Doctor</th>
+        <th>Doc Department</th>
+        <th>Patient</th>
+        <th>Date & Time</th>
+        <th>Status</th>
+        <th>Patient History</th>
+      </tr>
     </thead>
     <tbody>
-      {% for doctor, user in doctors %}
-        {% for appointment in doctor.appointments %}
+        {% for appointment,doctor,patient,user,treatment in upcoming_appointments %}
           <tr>
             <td>{{ appointment.appointment_id }}</td>
-            <td>{{ user.full_name }}</td>
+            <td>{{ doctor.user.full_name }}</td>
+            <td>{{ doctor.department.name }}</td>
             <td>{{ appointment.patient.user.full_name }}</td>
             <td>{{ appointment.appointment_date }} {{appointment.appointment_time}}</td>
             <td>{{ appointment.status }}</td>
+            <td>
+              <a href="{{ url_for('view_patient_history_admin', patient_id=patient.patient_id , doctor_id=doctor.doctor_id) }}" class="btn btn-dark">View History</a>
+            </td>
           </tr>
         {% endfor %}
-      {% endfor %}
     </tbody>
   </table>
 {% else %}

@@ -3,41 +3,44 @@
 {% block title %}Appointment Details - IITM Hospital{% endblock %}
 
 {% block content %}
+<style>
+    .box { width: 90%; max-width: 800px; margin: 40px auto; background: #fff; padding: 20px; border: 1px solid #ccc; }
+</style>
     {% if session.get('role') != 'patient' %}
         <div class="alert alert-danger" role="alert">
             Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as a patient.
         </div>
 
     {% elif session.get('role') == 'patient' %}
-      <div class="py-4">
+      <div class="box">
         <h1>Appointment Details</h1>
         <p><strong>Appointment ID:</strong> {{ appointment.appointment_id }}</p>
-        <p><strong>Date and Time:</strong> {{ treatment.datetime }}</p>
+        <p><strong>Date and Time:</strong> {{ treatment.datetime.strftime('%d-%m-%Y %I:%M %p') }}</p>
         <p><strong>Status:</strong> {{ appointment.status }}</p>
 
         <h2>Doctor Information</h2>
         <p><strong>Name:</strong> Dr. {{ doctor.user.full_name }}</p>
         <p><strong>Specialization:</strong> {{ doctor.specialization }}</p>
+        <p><strong>Department:</strong> {{ doctor.department.name }}</p>
+        <p><strong>Contact:</strong> {{ doctor.user.contact }}</p>
 
         <h2>Patient Information</h2>
         <p><strong>Name:</strong> {{ patient.user.full_name }}</p>
+        <p><strong>Age:</strong> {{ (treatment.datetime.date() - patient.dob).days // 365 }}</p>
+        <p><strong>Blood Group:</strong> {{ patient.blood_group }}</p>
+        <p><strong>Contact:</strong> {{ patient.user.contact }}</p>
+        <p><strong>Address:</strong> {{ patient.address }}</p>
 
         {% if treatment %}
             <h2>Treatment Details</h2>
             <p><strong>Treatment ID:</strong> {{ treatment.treatment_id }}</p>
-            <p><strong>Description:</strong> {{ treatment.diagnosis }}</p>
-            <p><strong>Prescribed Medication:</strong> {{ treatment.prescription }}</p>
+            <p><strong>Diagnosis:</strong> {{ treatment.diagnosis }}</p>
+            <p><strong>Prescribed Medication:</strong> <br> <pre>{{ treatment.prescription }}</pre> </p>
         {% else %}
             <p>No treatment details available for this appointment.</p>
         {% endif %}
+        <button onclick="window.print()" class="btn btn-dark">Print</button>
       </div>
+
     {% endif %}
 {% endblock %}
-
-<!-- class Treatment(db.Model):
-    __tablename__ = 'treatments'
-    treatment_id = db.Column(db.Integer, primary_key=True)
-    appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.appointment_id'), nullable=False)
-    diagnosis = db.Column(db.Text)
-    prescription = db.Column(db.Text)
-    datetime = db.Column(db.DateTime, nullable=False, default=datetime.now) -->

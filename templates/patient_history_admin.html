@@ -4,9 +4,9 @@
 
 {% block content %}
 
-{% if session.get('role') != 'doctor' %}
+{% if session.get('role') != 'admin' %}
     <div class="alert alert-danger">
-        Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as doctor.
+        Unauthorized access. Please <a href="{{ url_for('login') }}">login</a> as admin.
     </div>
 
 {% else %}

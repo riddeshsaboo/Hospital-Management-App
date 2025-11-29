@@ -96,6 +96,7 @@ def login():
 
 @app.route('/patient_dashboard')
 def patient_dashboard():
+    auto_cancel_past_appointments()
     if session.get('role') != 'patient': # if say doctor or admin tries to access this patient dashboard then 
             if session.get('role') == 'admin': # if he is admin 
                 return redirect('/admin_dashboard')
@@ -120,6 +121,7 @@ def patient_dashboard():
 
 @app.route('/admin_dashboard')
 def admin_dashboard():
+    auto_cancel_past_appointments()
     if session.get('role') != 'admin':
             if session.get('role') == 'patient':
                 return redirect('/patient_dashboard')
@@ -139,6 +141,7 @@ def admin_dashboard():
 
 @app.route('/doctor_dashboard')
 def doctor_dashboard(): 
+    auto_cancel_past_appointments()
     if session.get('email'):
         if session.get('role') != 'doctor':
             if session.get('role') == 'admin':
@@ -488,22 +491,25 @@ def edit_user(user_id):
     return redirect(url_for('admin_dashboard'))
 
 
-@app.route('/view_appointments' , methods=['GET'])
+@app.route('/admin_dashboard/view_appointments' , methods=['GET'])
 def view_appointments():
     if session.get('role') != 'admin':
         flash("Unauthorized access.", "danger")
         return redirect(url_for('login'))
     
-    appointments = []
-    doctors = Doctor.query.all()
-    for doctor in doctors:
-        for appointment in doctor.appointments:
-            patient_user = User.query.join(Patient).filter(Patient.patient_id == appointment.patient_id).first()
-            appointments.append((appointment, doctor, patient_user))
 
-    total_appointments = len(appointments)
+    upcoming_appointments = (
+            db.session.query(Appointment, Doctor, Patient, User, Treatment)
+            .join(Doctor, Appointment.doctor_id == Doctor.doctor_id)
+            .join(Patient, Appointment.patient_id == Patient.patient_id)
+            .join(User, Patient.user_id == User.user_id)
+            .join(Treatment, Appointment.appointment_id == Treatment.appointment_id, isouter=True)
+            .filter(Appointment.status == 'scheduled' , Appointment.appointment_date >= date.today())
+            .all()
+    )
+    total_appointments = len(upcoming_appointments)
 
-    return render_template('view_appointments.html', appointments=appointments , total_appointments=total_appointments)
+    return render_template('view_appointments.html', upcoming_appointments=upcoming_appointments , total_appointments=total_appointments)
 
 @app.route('/patient_dashboard/department_details', methods=['GET'])
 def department_details():
@@ -543,7 +549,7 @@ def doctor_availability():
         flash("Doctor not found.", "danger")
         return redirect(url_for('patient_dashboard'))
 
-    availabilities = Availability.query.filter_by(doctor_id=doctor_id).all()
+    availabilities = Availability.query.filter_by(doctor_id=doctor_id , status='available').all()
     total_slots = len(availabilities)
 
     current_date = date.today()
@@ -588,11 +594,13 @@ def book_appointment():
             doctor_id=availability.doctor_id,
             appointment_date=availability.date,
             appointment_time=availability.start_time,   
-            status='scheduled'
+            status='scheduled' ,
+            availability_id = availability.availability_id
         )
 
         db.session.add(new_appointment)
-        db.session.delete(availability)  # remove the slot once booked
+        availability.status = 'booked'
+        # db.session.delete(availability)  # remove the slot once booked
         db.session.commit()
 
         flash("Appointment booked successfully!", "success")
@@ -600,7 +608,6 @@ def book_appointment():
         print(6)
         db.session.rollback()
         flash("Could not book appointment: " + str(e), "danger")
-        app.logger.exception("book_appointment error")
 
     return redirect(url_for('patient_dashboard'))
     
@@ -620,6 +627,11 @@ def cancel_appointment():
         return redirect(url_for('patient_dashboard'))   
     try:
         appointment.status = 'canceled'
+        availability = Availability.query.get(appointment.availability_id)
+        if availability:
+            availability.status = 'available'
+        else :
+            print("1. Availability is not there")
         db.session.commit()
         flash("Appointment canceled successfully.", "success")
     except Exception as e:
@@ -634,17 +646,17 @@ def view_appointment_details():
         flash("You must be logged in as a patient to view appointment details.", "danger")
         return redirect(url_for('login'))
     
-    appointment_id = request.args.get('appointment_id')
+    appointment_id = request.form.get('appointment_id')
     appointment = Appointment.query.get(appointment_id)
+    # print(appointment_id)
     if not appointment:
-        flash("Appointment details not found.", "danger")
+        flash("Appointment not found.", "danger")
         return redirect(url_for('patient_dashboard'))
-
-    doctor = Doctor.query.get(appointment.doctor_id)
-    patient = Patient.query.get(appointment.patient_id)
     treatment = Treatment.query.filter_by(appointment_id=appointment.appointment_id).first()
-
-    return render_template('appointment_details.html', appointment=appointment, doctor=doctor, patient=patient, treatment=treatment)
+    patient = Patient.query.get(appointment.patient_id)
+    doctor = Doctor.query.get(appointment.doctor_id)
+    # appointment_details = db.session.query(Appointment,Treatment,Patient,Doctor).join(Treatment,Appointment.appointment_id == Treatment.appointment_id ).join(Patient, Appointment.patient_id == Patient.patient_id).join(Doctor, Appointment.doctor_id == Doctor.doctor_id).filter(Appointment.appointment_id == appointment_id).first()
+    return render_template('appointment_details.html', appointment=appointment, treatment=treatment, patient=patient, doctor=doctor)
 
 
 @app.route('/doctor_dashboard/update_patient_history', methods=['POST'])
@@ -694,6 +706,11 @@ def mark_appointment_completed():
 
     try:
         appointment.status = 'completed'
+        availability = Availability.query.get(appointment.availability_id)
+        if availability:
+            availability.status = 'completed'
+        else :
+            print("2 . Availability is not there")
         db.session.commit()
         flash("Appointment marked as completed.", "success")
     except Exception as e:
@@ -777,7 +794,8 @@ def save_availability():
             doctor_id=doctor.doctor_id,
             date=datetime.fromisoformat(date),
             start_time=time.fromisoformat(start),
-            end_time=time.fromisoformat(end)
+            end_time=time.fromisoformat(end),
+            status = 'available'
         )
         db.session.add(new_slot)
 
@@ -799,6 +817,11 @@ def cancel_appointment_as_doctor():
         return redirect(url_for('patient_dashboard'))   
     try:
         appointment.status = 'canceled'
+        availability = Availability.query.get(appointment.availability_id)
+        if availability:
+            availability.status = 'available'
+        else :
+            print("3. Availability is not there")
         db.session.commit()
         flash("Appointment canceled successfully.", "success")
     except Exception as e:
@@ -806,6 +829,66 @@ def cancel_appointment_as_doctor():
         flash("Could not cancel appointment: " + str(e), "danger")
 
     return redirect(url_for('patient_dashboard'))
+
+@app.route('/admin_dashboard/patient_history/', methods=['GET'])
+def view_patient_history_admin():
+    patient_id = request.args.get('patient_id')
+    doctor_id = request.args.get('doctor_id')
+
+    if(session.get('role') != 'admin'):
+        flash("Unauthorized access.Please login as admin", "danger")
+        return redirect(url_for('login'))
+    
+    patient = Patient.query.get(patient_id)
+    doctor = Doctor.query.get(doctor_id)
+    if not patient or not doctor:
+        flash("Patient or Doctor not found.", "danger")
+        return redirect(url_for('admin_dashboard'))
+    
+    user = User.query.get(patient.user_id)
+    treatments = (db.session.query(Appointment, Treatment).join(Treatment, Appointment.appointment_id == Treatment.appointment_id).filter(Appointment.patient_id == patient.patient_id , Appointment.doctor_id == doctor.doctor_id).all())
+
+    return render_template('patient_history_admin.html', patient=patient, user=user, treatments=treatments , doctor=doctor)
+
+@app.route('/patient_dashboard/view_history', methods=['GET'])
+def view_history_patient():
+    if session.get('role') != 'patient':
+        flash("You must be logged in as a patient to view your history.", "danger")
+        return redirect(url_for('login'))
+    
+    patient = Patient.query.filter_by(user_id=session.get('user_id')).first()
+    if not patient:
+        flash("Patient record not found for current user.", "danger")
+        return redirect(url_for('patient_dashboard'))
+
+    user = User.query.get(patient.user_id)
+    treatments = (db.session.query(Appointment, Treatment, Doctor).join(Treatment, Appointment.appointment_id == Treatment.appointment_id).join(Doctor, Appointment.doctor_id == Doctor.doctor_id).filter(Appointment.patient_id == patient.patient_id).all())
+
+    return render_template('patient_view_history.html', patient=patient, user=user, treatments=treatments)
+
+
+def auto_cancel_past_appointments():
+    current_date = date.today()
+    current_time = datetime.now().time()
+
+    past_appointments = Appointment.query.filter(
+        (Appointment.appointment_date < current_date) |
+        ((Appointment.appointment_date == current_date) & (Appointment.appointment_time < current_time)),
+        Appointment.status == 'scheduled'
+    ).all()
+
+    print('Auto-canceling past appointments:', past_appointments)
+
+    for appointment in past_appointments:
+        appointment.status = 'canceled'
+        availability = Availability.query.get(appointment.availability_id)
+        if availability:
+            availability.status = 'canceled'
+        else:
+            print("-1. Availability is not there")
+
+    db.session.commit()
+
 
 
 if __name__ == '__main__':

@@ -72,6 +72,8 @@ class Availability(db.Model):
     date = db.Column(db.Date, nullable=False)
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
+    status = db.Column(db.Enum('available', 'booked','completed','canceled' , name='availability_status'),
+                       nullable=False, server_default='available')
 
 # 1 appointment -> 1 treatment
 class Appointment(db.Model):
@@ -83,7 +85,7 @@ class Appointment(db.Model):
     appointment_time = db.Column(db.Time, nullable=False)
     status = db.Column(db.Enum('scheduled', 'completed', 'canceled', name='appointment_status'),
                        nullable=False, server_default='scheduled')
-
+    availability_id = db.Column(db.Integer, db.ForeignKey('availabilities.availability_id'))
     treatment = db.relationship('Treatment', backref='appointment', uselist=False)
 
 
