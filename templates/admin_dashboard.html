@@ -68,19 +68,19 @@
     <div class="section">
       <h3>Manage Doctors</h3>
       
-      <a href="{{url_for('add_doctor')}}"><button>Add Doctor</button></a>
-      <a href="{{url_for('add_department')}}"><button>Add Department</button></a>
-      <a href="{{url_for('view_doctors')}}"><button>View Doctors</button></a>
-      <a href="{{url_for('view_departments')}}"><button>View Departments</button></a>
+      <a href="{{url_for('add_doctor')}}"><button class="btn btn-success">Add Doctor</button></a>
+      <a href="{{url_for('add_department')}}"><button class="btn btn-success">Add Department</button></a>
+      <a href="{{url_for('view_doctors')}}"><button class="btn btn-primary">View Doctors</button></a>
+      <a href="{{url_for('view_departments')}}"><button class="btn btn-primary">View Departments</button></a>
 
     <div class="section">
       <h3>Manage Patients</h3>
-      <a href="{{url_for('view_patients')}}"><button>View Patients</button></a>
+      <a href="{{url_for('view_patients')}}"><button class="btn btn-secondary">View Patients</button></a>
     </div>
 
     <div class="section">
       <h3>Manage Appointments</h3>
-      <a href="{{url_for('view_appointments')}}"><button>View Appointments</button></a>
+      <a href="{{url_for('view_appointments')}}"><button class="btn btn-secondary">View Appointments</button></a>
     </div>
   {% endif %}
 </div>

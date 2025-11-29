@@ -8,7 +8,7 @@
     {% if get_flashed_messages() %}
       <div class="alert">
         {% for message in get_flashed_messages() %}
-          <p>{{ message }}</p>
+          <div class="alert alert-info">{{ message }}</p>
         {% endfor %}
       </div>
     {% endif %}
@@ -24,7 +24,7 @@
         <h1>Hello, {{ session.get('full_name') }}!</h1>
         <p><strong>Email:</strong> {{ session.get('email') }}</p>
         <p><strong>Role:</strong> {{ session.get('role') }}</p>
-        WELCOME TO IITM PATIENT DASHBOARD
+        <h4>Welcome to IITM PATIENT DASHBOARD</h4>
         <br>
         <a href="{{ url_for('view_history_patient') }}"><button class="btn btn-dark" style="margin-top: 10px;">View History</button></a>
       </div>

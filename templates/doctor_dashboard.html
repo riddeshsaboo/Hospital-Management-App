@@ -20,7 +20,9 @@
         <h1>Hello, {{ session.get('full_name') }}!</h1>
         <p><strong>Email:</strong> {{ session.get('email') }}</p>
         <p><strong>Role:</strong> {{ session.get('role') }}</p>
-        HELLO FROM IITM DOCTOR DASHBOARD
+        <p><strong>Department:</strong> {{ doctor.department.name }}</p>
+        <p><strong>Contact:</strong> {{ doctor.user.contact }}</p>
+        <h4>Welcome to IITM DOCTOR DASHBOARD</h4>
 </div>
 
 <div class="py-4">
@@ -57,8 +59,10 @@
 
                             <span class="close" onclick="closeForm('{{ loop.index }}')">x</span>
                             <h4>Update Patient History</h4>
-
-                            <p id="patient_name_display{{ loop.index }}" style="font-weight:600; margin-bottom:10px;">{{ appt.appointment_id }}</p>
+                            <p><strong>Patient Name : </strong>{{patient.user.full_name}}</p>
+                            <p><strong>Patient Blood Group : </strong>{{patient.blood_group}}</p>
+                            <p><strong>Patient Age : </strong>{{(today -patient.dob).days//365}}</p>
+                            <p><strong>Patient Contact : </strong>{{patient.user.contact}}</p>
                             <input type="hidden" id="patient_name{{ loop.index }}" name="patient_name">
 
                             <form method="POST" action="{{ url_for('update_patient_history') }}">

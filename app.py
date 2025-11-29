@@ -160,9 +160,12 @@ def doctor_dashboard():
             .filter(Doctor.user_id == session.get('user_id'), Appointment.status == 'scheduled')
             .all()
         )
+        doctor = Doctor.query.get(session.get('user_id'))
+
+        today = date.today()
 
         user = User.query.filter_by(email=session.get('email')).first()
-        return render_template('doctor_dashboard.html', user=user,upcoming_appointments=upcoming_appointments,total_upcoming_appointments=len(upcoming_appointments)) 
+        return render_template('doctor_dashboard.html', user=user, doctor=doctor,upcoming_appointments=upcoming_appointments,total_upcoming_appointments=len(upcoming_appointments),today=today) 
     
     return redirect('/login')
 
@@ -734,8 +737,9 @@ def view_patient_history():
     user = User.query.get(patient.user_id)
     doctor = Doctor.query.filter_by(user_id=session.get('user_id')).first()
     treatments = (db.session.query(Appointment, Treatment).join(Treatment, Appointment.appointment_id == Treatment.appointment_id).filter(Appointment.patient_id == patient.patient_id , Appointment.doctor_id == doctor.doctor_id).all())
+    today = date.today()
 
-    return render_template('patient_history.html', patient=patient, user=user, treatments=treatments , doctor=doctor)
+    return render_template('patient_history.html', patient=patient, user=user, treatments=treatments , doctor=doctor, today=today)
 
 @app.route("/doctor_dashboard/provide_availability", methods=["GET", "POST"])
 def provide_availability():

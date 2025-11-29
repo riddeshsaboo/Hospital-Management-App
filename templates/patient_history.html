@@ -12,14 +12,20 @@
 {% else %}
     <div class="py-3">
         <h2>Patient History for {{ user.full_name }}</h2>
+        <p><strong>Patient Name : </strong>{{patient.user.full_name}}</p>
+        <p><strong>Patient Blood Group : </strong>{{patient.blood_group}}</p>
+        <p><strong>Patient Age : </strong>{{(today -patient.dob).days//365}}</p>
+        <p><strong>Patient Contact : </strong>{{patient.user.contact}}</p>
+
         <h3>Doctor: {{ doctor.user.full_name }}</h3>
+
         <div class="py-3">
         {% if treatments %}
             <table class="table table-striped">
                 <thead>
                     <tr>
                         <th>Sr no.</th>
-                        <th>Appointment Date</th>
+                        <th>Treatment Date and Time</th>
                         <th>Diagnosis</th>
                         <th>Prescription</th>
                     </tr>
@@ -28,7 +34,7 @@
                     {% for appointment,treatment in treatments %}
                     <tr>
                         <td>{{ loop.index }}</td>
-                        <td>{{ appointment.appointment_date }}</td>
+                        <td>{{ treatment.datetime.strftime('%Y-%m-%d %H:%M %p') }}</td>
                         <td>{{ treatment.diagnosis }}</td>
                         <td><pre>{{ treatment.prescription }}</pre></td>
                     </tr>
