@@ -881,12 +881,11 @@ def view_history_patient():
 
 def auto_cancel_past_appointments():
     current_date = date.today()
-    current_time = datetime.now().time()
+    # current_time = datetime.now().time()
 
     past_appointments = Appointment.query.filter(
-        (Appointment.appointment_date < current_date) |
-        ((Appointment.appointment_date == current_date) & (Appointment.appointment_time < current_time)),
-        Appointment.status == 'scheduled'
+        (Appointment.appointment_date < current_date) &
+        (Appointment.status == 'scheduled')
     ).all()
 
     print('Auto-canceling past appointments:', past_appointments)
