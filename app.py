@@ -133,10 +133,12 @@ def admin_dashboard():
         user = User.query.filter_by(email=session.get('email')).first()
         doctors = (db.session.query(Doctor, User).join(User, Doctor.user_id == User.user_id).all())
         patients = (db.session.query(Patient, User).join(User, Patient.user_id == User.user_id).all())
-        appointments_count = sum(len(doctor.appointments) for doctor, user in doctors)
+        total_appointments = len(Appointment.query.all())
+        completed_appointments = len(Appointment.query.filter_by(status='completed').all())
+        cancelled_appointments = len(Appointment.query.filter_by(status='canceled').all())
         total_doctors = len(doctors)
         total_patients = len(patients)  
-        return render_template('admin_dashboard.html', user=user, doctors=doctors, patients=patients, total_doctors=total_doctors, total_patients=total_patients, total_appointments=appointments_count)
+        return render_template('admin_dashboard.html', user=user, doctors=doctors, patients=patients, total_doctors=total_doctors, total_patients=total_patients, total_appointments=total_appointments, completed_appointments=completed_appointments, cancelled_appointments=cancelled_appointments)
     return redirect('/login')
 
 @app.route('/doctor_dashboard')
@@ -164,10 +166,14 @@ def doctor_dashboard():
         user = User.query.filter_by(email=session.get('email'))
         department = Department.query.get(doctor.department_id)
 
-        today = date.today()
+        unique_patients = []
 
+        for appt, doctor, patient, user, treatment in upcoming_appointments:
+            if patient.patient_id not in [p.patient_id for p, u in unique_patients]:
+                unique_patients.append((patient, user))
+        today = date.today()
         user = User.query.filter_by(email=session.get('email')).first()
-        return render_template('doctor_dashboard.html', user=user, doctor=doctor,upcoming_appointments=upcoming_appointments,total_upcoming_appointments=len(upcoming_appointments),today=today,department=department) 
+        return render_template('doctor_dashboard.html', user=user, doctor=doctor,upcoming_appointments=upcoming_appointments,total_upcoming_appointments=len(upcoming_appointments),today=today,department=department,unique_patient_list=unique_patients,total_unique_patients=len(unique_patients)) 
     
     return redirect('/login')
 

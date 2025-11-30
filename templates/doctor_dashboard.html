@@ -119,12 +119,12 @@
         </tr>
       </thead>
       <tbody>
-        {% for appt, doctor, patient, user, treatment in upcoming_appointments %}
+        {% for patient, user in unique_patient_list %}
         <tr>
           <td>{{ loop.index }}</td>
           <td>{{ user.full_name }}</td>
           <td>
-            <form action="{{ url_for('view_patient_history')}}" method="POST">
+            <form action="{{ url_for('view_patient_history') }}" method="POST">
               <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
               <button type="submit" class="btn btn-dark">View History</button>
             </form>

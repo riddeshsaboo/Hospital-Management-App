@@ -13,43 +13,13 @@
   input {
      width: 100%; margin-top: 3px; margin-bottom: 8px; 
   }
-  button{ 
-    width: 100%; margin-top: 10px; 
-  }
-  .alert{ 
-    padding: 6px; margin-bottom: 8px; font-size: 13px; 
-  }
-  .alert-danger{ 
-    background: #fdd; 
-  }
-  .alert-success { 
-    background: #dfd; 
-  }
-  p { 
-    font-size: 13px; text-align: center; 
-  }
 </style>
 
-<!-- doctor_name = request.form.get('doctor_name')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        contact = request.form.get('contact')
-        specialization = request.form.get('specialization')
-        department_id = request.form.get('department_id')
-        about = request.form.get('about') -->
 {% if total_departments == 0 %}
-        <p>You have not added any departments , please add from dashboard</p>
+      <p>You have not added any departments , please add from dashboard</p>
 {% elif total_departments > 0 %}
 <div class="box">
   <h3>Add a Doctor Account</h3>
-
-  {% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
-  {% endif %}
-
-  {% if success %}
-    <div class="alert alert-success">{{ success }}</div>
-  {% endif %}
 
   <form action="{{url_for('add_doctor')}}" method="post">
     <label for="name">Full name</label>
@@ -59,7 +29,8 @@
     <input id="email" name="email" type="email" required>
 
     <label for="contact">Contact</label>
-    <input id="contact" name="contact" type="text" placeholder="Phone number" required>
+    <input id="contact" name="contact" type="text" placeholder="Phone number" maxlength="10" minlength="10"
+    title="Enter a 10-digit phone number" pattern="[0-9]{10}" required>
     <label for="department_id">Department</label>
     <select name="department_id" required>
         {% for dept in departments %}
@@ -73,13 +44,14 @@
     <textarea id="about" name="about" rows="2" cols="40"></textarea>
 
     <label for="password">Password</label>
-    <input id="password" name="password" type="password" required>
+    <input id="password" name="password" type="password" minlength="8" required
+    pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$"
+    title="Password must be at least 8 characters long and contain at least one letter and one number"
+    >
 
-    <button type="submit">Register</button>
+    <button type="submit" class="btn btn-success w-100 mt-3">Register</button>
   </form>
 
-  <p><a href="{{ url_for('login') }}">Back to Login</a></p>
-  <p>Only patients can register here.<br>Contact admin for doctor registration.</p>
 </div>
 {% endif %}
 

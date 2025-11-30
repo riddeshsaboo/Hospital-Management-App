@@ -13,9 +13,6 @@
   input {
      width: 100%; margin-top: 3px; margin-bottom: 8px; 
   }
-  button{ 
-    width: 100%; margin-top: 10px; 
-  }
   .alert{ 
     padding: 6px; margin-bottom: 8px; font-size: 13px; 
   }
@@ -47,7 +44,8 @@
     <input id="email" name="email" type="email" required>
 
     <label for="contact">Contact</label>
-    <input id="contact" name="contact" type="tel" placeholder="Phone number" required>
+    <input id="contact" name="contact" type="tel" placeholder="Phone number" maxlength="10" minlength="10"
+    title="Enter a 10-digit phone number" pattern="[0-9]{10}" required>
 
     <label for="dob">Date of Birth</label>
     <input id="dob" name="dob" type="date" required max="{{ current_date }}">
@@ -69,11 +67,12 @@
     <input id="address" name="address" type="text">
 
     <label for="password">Password</label>
-    <input id="password" name="password" type="password" required>
+    <input id="password" name="password" type="password" minlength="8" required
+    pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$"
+    title="Password must be at least 8 characters long and contain at least one letter and one number"
+    >
 
-
-
-    <button type="submit" class="btn btn-success">Register</button>
+    <button type="submit" class="btn btn-success w-100 mt-3">Register</button>
   </form>
 
   <p><a href="{{ url_for('login') }}">Back to Login</a></p>

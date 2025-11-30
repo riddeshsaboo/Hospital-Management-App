@@ -10,46 +10,19 @@
   label { 
     display: block; margin-top: 8px; 
   }
-  input {
-     width: 100%; margin-top: 3px; margin-bottom: 8px; 
-  }
-  button{ 
-    width: 100%; margin-top: 10px; 
-  }
-  .alert{ 
-    padding: 6px; margin-bottom: 8px; font-size: 13px; 
-  }
-  .alert-danger{ 
-    background: #fdd; 
-  }
-  .alert-success { 
-    background: #dfd; 
-  }
-  p { 
-    font-size: 13px; text-align: center; 
-  }
 </style>
 
 <div class="box">
   <h3>Add a Department</h3>
 
-  {% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
-  {% endif %}
-
-  {% if success %}
-    <div class="alert alert-success">{{ success }}</div>
-  {% endif %}
-
-
   <form action="{{ url_for('add_department') }}" method="post">
     <label for="name">Department Name : </label>
-    <input id="name" name="name" type="text" required>
+    <input id="name" name="name" type="text" class="w-100 mt-3 mb-2" required>
 
     <label for="description">Description</label>
-    <input id="description" name="description" type="text" required>
+    <input id="description" name="description" type="text" class="w-100 mt-3 mb-2" required>
     
-    <button type="submit">Add Department</button>
+    <button type="submit" class="btn btn-success w-100 mt-3">Add Department</button>
   </form>
 
 </div>
