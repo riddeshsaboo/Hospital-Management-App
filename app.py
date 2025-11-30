@@ -160,12 +160,14 @@ def doctor_dashboard():
             .filter(Doctor.user_id == session.get('user_id'), Appointment.status == 'scheduled')
             .all()
         )
-        doctor = Doctor.query.get(session.get('user_id'))
+        doctor = Doctor.query.filter_by(user_id=session.get('user_id')).first()
+        user = User.query.filter_by(email=session.get('email'))
+        department = Department.query.get(doctor.department_id)
 
         today = date.today()
 
         user = User.query.filter_by(email=session.get('email')).first()
-        return render_template('doctor_dashboard.html', user=user, doctor=doctor,upcoming_appointments=upcoming_appointments,total_upcoming_appointments=len(upcoming_appointments),today=today) 
+        return render_template('doctor_dashboard.html', user=user, doctor=doctor,upcoming_appointments=upcoming_appointments,total_upcoming_appointments=len(upcoming_appointments),today=today,department=department) 
     
     return redirect('/login')
 
